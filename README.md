@@ -1,5 +1,5 @@
 # 🛡️ Malicious URL Detection: DevSecOps Pipeline
-### **Architected by Yatharth | Technical Lead, MIET Cybersecurity Society**
+### **Architected by Yatharth | Student at MIET **
 
 This repository contains a production-grade security gate that uses **Machine Learning** to scan URLs within CI/CD pipelines.
 
