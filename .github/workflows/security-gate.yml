@@ -1,8 +1,43 @@
-name: Malicious URL Gate
-on: [pull_request]
+name: Malicious URL Detection Gate
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
-  scan:
+  security-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo "Security Scan Initiated"
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install playwright beautifulsoup4 python-whois lightgbm pandas joblib
+          playwright install chromium
+
+      - name: Extract URLs from PR Diff and Scan
+        run: |
+          # Get the files changed in the PR
+          git diff origin/main...HEAD > pr_diff.txt
+          
+          # Crude regex to find http/https links in the diff
+          urls=$(grep -oE 'https?://[^ "]+' pr_diff.txt | sort -u)
+          
+          if [ -z "$urls" ]; then
+            echo "No URLs found in the PR. Skipping scan."
+            exit 0
+          fi
+          
+          # Run the Gatekeeper against each URL found
+          for url in $urls; do
+            echo "Scanning: $url"
+            python src/gatekeeper.py "$url"
+          done
